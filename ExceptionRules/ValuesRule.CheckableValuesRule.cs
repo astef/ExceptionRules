@@ -1,17 +1,33 @@
-﻿namespace ExceptionRules
+﻿using System;
+
+namespace ExceptionRules
 {
-    public sealed partial class ValuesRule<T>
+    public sealed partial class ValuesRule<T, TV>
+        where T : Exception
     {
-        public sealed class CheckableValuesRule
+        public sealed class CheckableValuesRule : IExceptionCheck<TV>
         {
-            public CheckableValuesRule SetMessage(FormatMessage formatMessage)
+            internal CheckableValuesRule(
+                Check<TV> internalCheck,
+                Create<T> internalCreate,
+                Throw<T> internalThrow)
             {
-                return new CheckableValuesRule();
+                InternalCheck = internalCheck;
+                InternalCreate = internalCreate;
+                InternalThrow = internalThrow;
             }
 
-            public void Check()
-            {
-            }
+            internal Check<TV> InternalCheck { get; }
+
+            internal Create<T> InternalCreate { get; }
+
+            internal Throw<T> InternalThrow { get; }
+
+            public void Check(TV arg) => InternalApi.Check(
+                InternalCheck,
+                InternalCreate,
+                InternalThrow,
+                arg);
         }
     }
 }

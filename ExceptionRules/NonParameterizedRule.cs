@@ -2,36 +2,20 @@
 
 namespace ExceptionRules
 {
-    public sealed partial class NonParameterizedRule : IExceptionFactory, IExceptionThrow
+    public sealed partial class NonParameterizedRule<T> : IExceptionFactory, IExceptionThrow
+        where T : Exception
     {
-        internal NonParameterizedRule()
+        internal NonParameterizedRule(Create<T> internalCreate, Throw<T> internalThrow)
         {
-
+            InternalCreate = internalCreate;
+            InternalThrow = internalThrow;
         }
 
         public delegate bool ShouldThrow();
 
-        public NonParameterizedRule SetMessage(string message)
-        {
-            return new NonParameterizedRule();
-        }
+        internal Create<T> InternalCreate { get; }
 
-        //
-
-        public ValuesRule<T> UsingValues<T>()
-        {
-            return new ValuesRule<T>();
-        }
-
-        public ParametersRule<T> UsingParameters<T>()
-        {
-            return new ParametersRule<T>();
-        }
-
-        public CheckableNonParameterizedRule SetThrowCondition(ShouldThrow shouldThrow)
-        {
-            return new CheckableNonParameterizedRule();
-        }
+        internal Throw<T> InternalThrow { get; }
 
         public Exception Create(Exception innerException = null)
         {

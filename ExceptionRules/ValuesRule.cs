@@ -1,23 +1,34 @@
-﻿namespace ExceptionRules
+﻿using System;
+
+namespace ExceptionRules
 {
-    public sealed partial class ValuesRule<T>
+    public sealed partial class ValuesRule<T, TV> : IExceptionFactory, IExceptionThrow
+        where T : Exception
     {
-        internal ValuesRule()
+        internal ValuesRule(
+            Create<T> internalCreate,
+            Throw<T> internalThrow)
         {
+            InternalCreate = internalCreate;
+            InternalThrow = internalThrow;
         }
 
-        public delegate string FormatMessage(T value1);
+        public delegate string FormatMessage(TV value1);
 
-        public delegate bool ShouldThrow(T value1);
+        public delegate bool ShouldThrow(TV value1);
 
-        public ValuesRule<T> SetMessage(FormatMessage formatMessage)
+        internal Create<T> InternalCreate { get; }
+
+        internal Throw<T> InternalThrow { get; }
+
+        public Exception Create(Exception innerException = null)
         {
-            return new ValuesRule<T>();
+            throw new NotImplementedException();
         }
 
-        public CheckableValuesRule SetThrowCondition(ShouldThrow shouldThrow)
+        public void Throw(Exception innerException = null)
         {
-            return new CheckableValuesRule();
+            throw new NotImplementedException();
         }
     }
 }

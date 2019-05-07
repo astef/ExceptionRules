@@ -1,28 +1,32 @@
-﻿namespace ExceptionRules
+﻿using System;
+
+namespace ExceptionRules
 {
-    public sealed partial class ParametersRule<T>
+    public sealed partial class ParametersRule<T, TP> : IExceptionFactory, IExceptionThrow
+        where T : Exception
     {
-        internal ParametersRule()
+        internal ParametersRule(Create<T> internalCreate, Throw<T> internalThrow)
         {
+            InternalCreate = internalCreate;
+            InternalThrow = internalThrow;
         }
 
-        public delegate string FormatMessage(string par1, T arg1);
+        public delegate string FormatMessage(string par1, TP arg1);
 
-        public delegate bool ShouldThrow(T argument1);
+        public delegate bool ShouldThrow(TP argument1);
 
-        public ParametersRule<T> SetMessage(FormatMessage formatMessage)
+        internal Create<T> InternalCreate { get; }
+
+        internal Throw<T> InternalThrow { get; }
+
+        public Exception Create(Exception innerException = null)
         {
-            return new ParametersRule<T>();
+            throw new NotImplementedException();
         }
 
-        public CheckableParametersRule SetThrowCondition(ShouldThrow shouldThrow)
+        public void Throw(Exception innerException = null)
         {
-            return new CheckableParametersRule();
-        }
-
-        public ParametersAndValuesRule<TV> AndValues<TV>()
-        {
-            return new ParametersAndValuesRule<TV>();
+            throw new NotImplementedException();
         }
     }
 }
