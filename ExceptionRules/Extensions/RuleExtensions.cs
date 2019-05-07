@@ -2,7 +2,7 @@
 
 namespace ExceptionRules
 {
-    public static class NonParameterizedRuleExtensions
+    public static class RuleExtensions
     {
         //public static NonParameterizedRule<T> SetMessage<T>(this NonParameterizedRule<T> npRule, string message)
         //    where T : Exception

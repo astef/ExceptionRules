@@ -1,6 +1,6 @@
 ﻿namespace ExceptionRules
 {
-    public sealed partial class Rule
+    public sealed partial class Rule<T>
     {
         internal Rule(InternalCreate internalCreate, InternalThrow internalThrow)
         {
@@ -8,7 +8,9 @@
             InternalThrow = internalThrow;
         }
 
-        public delegate bool ShouldThrow();
+        public delegate string FormatMessage(T value);
+
+        public delegate bool ShouldThrow(T value);
 
         internal InternalCreate InternalCreate { get; }
 

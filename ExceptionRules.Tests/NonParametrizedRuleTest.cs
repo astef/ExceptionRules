@@ -73,13 +73,30 @@ namespace ExceptionRules.Tests
             ctorMock.CtorStatus.ShouldBe(ExceptionCtorStatus.FullSetup);
         }
 
-        private static NonParameterizedRule RuleFor(Type exceptionType)
+        [DataRow(typeof(AllCtorsException))]
+        [DataRow(typeof(DerivedAllCtorsException))]
+        [DataRow(typeof(OnlyFullCtorException))]
+        [DataTestMethod]
+        public void ThrowAfterEmptySetup(Type exceptionType)
         {
-            return (NonParameterizedRule)typeof(Rule)
-                .GetMethod(nameof(Rule.For), BindingFlags.Static | BindingFlags.Public)
+            // arrange
+            var npRule = RuleFor(exceptionType);
+
+            // act
+            Action exceptionThrow = () => npRule.Throw();
+
+            // assert
+            var exception = (IExceptionCtorMock)exceptionThrow.ShouldThrow(exceptionType);
+            exception.CtorStatus.ShouldBe(ExceptionCtorStatus.EmptySetup);
+            exception.ShouldBeOfType(exceptionType);
+        }
+
+        private static Rule RuleFor(Type exceptionType)
+        {
+            return (Rule)typeof(RuleApi)
+                .GetMethod(nameof(RuleApi.For), BindingFlags.Static | BindingFlags.Public)
                 .MakeGenericMethod(exceptionType)
                 .Invoke(null, null);
         }
-
     }
 }
