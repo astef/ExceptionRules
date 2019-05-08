@@ -3,3 +3,108 @@ extension methods
 
 T4
 		
+
+		
+		
+================
+
+            // ExceptionRules
+
+            // Defensive programming phlisophy
+            // - only preconditions
+            // - check once
+            // - have one place responsible for the bug (writer)
+            // - trust yourself, don't trust user
+            // - best practice is to avoid exception at all (can be achieved with better type system, with exception of nullrefs)
+            // - ? passing null is always a bug
+
+            // Comparison with others:
+            // 
+            // 
+            // https://github.com/thomasgalliker/Guards - Not a free license
+            // https://github.com/mwereda/Conditions.NET - allocate in run-time even for happy paths (because of closures used for custom exceptions)
+            // https://github.com/dotnetjunkie/cuttingedge.conditions
+            // https://github.com/adamralph/liteguard
+            // https://github.com/Heleonix/Heleonix.Guard
+
+
+            // Motivation:
+            //      clean method bodies, but don't obfuscate important logic
+            //      help improving exception messages
+            //      help re-using repetetive exceptions 
+            //      supply common checks
+            //      speed up prototyping by postponing work with exception API
+
+            // definition:
+            // MyRule = Rule.SetMessage("Value should be greater than zero.");
+            // MyRule = Rule.ForValue<TimeSpan>().SetMessage(x => "Value should be greater than zero. Actual value: " + x);
+            // MyRule = Rule.ForParameter<TimeSpan>().SetMessage(name, x => $"{name} should be greater than zero. Actual value: {x}");
+            // MyCheckableRule = MyRule.SetThrowCondition(x => x > 0);
+            // MyCheckableRule = MyRule.SetThrowCondition(x => x > 0);
+
+            // SetMessage(""), SetException<T>(), SetException(() => new Exception()), SetException<T>(e => e.ErrorCode = 100)
+            // OnExceptionCreated(e => { }), OnExceptionThrown(e => { })
+
+            // ??? integration with logging via OnExceptionCreated/OnExceptionThrown and using structured logging pattern ???
+
+            // usage:
+            // MyCheckableRule.Check(arg);
+            // MyCheckableRule.Check(nameof(arg), arg);
+
+            // usage 2:
+
+            // if(x <= 0)
+            //      throw MyRule.Exception(arg);
+            // if(x <= 0)
+            //      throw MyRule.Exception(nameof(arg), arg);
+
+            // MyCheckableRule.Throw(nameof(arg), arg);
+
+            // Samples:
+
+            // sr = Rule.ForException<ArgumentException>()
+            //          .UsingParameters<string>()
+            //          .SetMessage()
+            //          .SetThrowCondition(string.IsNullOrWhitespace)
+            //          .Check();
+            //
+            // sr = Rule.ForParameter<string>()
+            //          .SetMessage(name, _ => $"string {name} is empty")
+            //          .SetException<ArgumentException>()
+            //          .SetThrowCondition(string.IsNullOrWhitespace)
+
+            // sr = Rules.StringNotNullOrWhitespace();
+            // Rules.StringNotNullOrWhitespace.Check(nameof(arg), str);
+
+            // Wrong (exception parameters come from throw condition, constant hard coded):
+            // SumOfThreeRule = Rule.ForValues<int, int, int>()
+            //                      .SetThrowCondition((arg1, arg2, arg3) => { (arg1 + arg2 > 735) || (arg2 + arg3 > 735) || (arg1 + arg3 > 735) })
+            //                      .SetMessage((arg1, arg2, arg3) =>
+            //                          $"Sum of any two integers should not be greater than 735. Values: {arg1}, {arg2}, {arg3}");
+            // SumOfThreeRule.Check(nameof(arg1), arg1, nameof(arg2), arg2, nameof(arg3), arg3);
+
+            // correct:
+            // SumOfThreeRule = Rule.ForParameters<int, int>()
+            //                      .AndValue<int>()
+            //                      .SetThrowCondition((arg1, arg2, limit) => arg1 + arg2 > limit)
+            //                      .SetMessage((par1, arg1, par2, arg2, limit) =>
+            //                          $"Sum of any two integers should not be greater than {limit}. Computation: {par1} + {par2} = {arg1} + {arg2} = {arg1 + arg2} > {limit}");
+            // SumOfThreeRule.Check(nameof(arg1), arg1, nameof(arg2), arg2, limit);
+            // SumOfThreeRule.Check(nameof(arg2), arg2, nameof(arg3), arg3, limit);
+            // SumOfThreeRule.Check(nameof(arg3), arg3, nameof(arg1), arg1, limit);
+
+            // also correct:
+            // if(arg1 + arg2 > limit)
+            //      throw SumOfThreeRule.Exception(nameof(arg1), arg1, nameof(arg2), arg2);
+            // if(arg2 + arg3 > limit)
+            //      throw SumOfThreeRule.Exception(nameof(arg2), arg2, nameof(arg3), arg3);
+            // if(arg3 + arg1 > limit)
+            //      throw SumOfThreeRule.Exception(nameof(arg3), arg3, nameof(arg1), arg1);
+
+            // if you prefer expressions:
+            // if(arg1 + arg2 > limit)
+            //      throw SumOfThreeRule.Exception(() => arg1, () => arg2);
+            // if(arg2 + arg3 > limit)
+            //      throw SumOfThreeRule.Exception(() => arg2, () => arg3);
+            // if(arg3 + arg1 > limit)
+            //      throw SumOfThreeRule.Exception(() => arg3, () => arg1); 
